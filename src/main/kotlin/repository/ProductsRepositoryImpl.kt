@@ -9,6 +9,7 @@ import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.kodein.di.DI
 import org.kodein.di.DIAware
@@ -40,8 +41,9 @@ class ProductsRepositoryImpl(di: DI) : ProductsRepository, DIAware by di {
     override suspend fun getProductCatalog(): List<ProductDTO> = newSuspendedTransaction {
         addLogger(StdOutSqlLogger)
         Product.all()
-            .with(Product::sizes, Product::images, Product::colors, Product::category)
-            .orderBy(Products.createDate to SortOrder.DESC)
+            .notForUpdate()
+            .with(Product::category, Product::colors, Product::sizes, Product::images)
+            .orderBy(Products.id to SortOrder.DESC)
             .limit(100)
             .map { productToDto(it) }
             .toList()

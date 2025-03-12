@@ -1,5 +1,7 @@
 package lol.malinovskaya
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -16,6 +18,7 @@ import io.ktor.server.util.*
 import lol.malinovskaya.repository.ProductsRepository
 import lol.malinovskaya.utils.response
 import org.jetbrains.exposed.sql.Database
+import org.jetbrains.exposed.sql.DatabaseConfig
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.instance
@@ -30,11 +33,17 @@ class ShopApplication(di: DI) : DIAware by di {
     }
 
     private fun configureDatabase() {
-        Database.connect(
-            System.getenv("SHOP_DATABASE_URL"),
-            user = System.getenv("SHOP_DATABASE_USER"),
+        val config = DatabaseConfig {
+        }
+        val poolConfig = HikariConfig().apply {
+            jdbcUrl = System.getenv("SHOP_DATABASE_URL")
+            username = System.getenv("SHOP_DATABASE_USER")
             password = System.getenv("SHOP_DATABASE_PASSWORD")
-        )
+            maximumPoolSize = 8
+            transactionIsolation = "TRANSACTION_SERIALIZABLE"
+        }
+        val dataSource = HikariDataSource(poolConfig)
+        Database.connect(dataSource, databaseConfig = config)
 
     }
 

@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "lol.malinovskaya"
-version = "1.0.0"
+version = "1.0.1"
 
 gradleEnv {
     enableSystemEnvironment()
@@ -70,6 +70,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty")
     implementation("ch.qos.logback:logback-classic:1.4.14")
     implementation("org.kodein.di:kodein-di:7.25.0")
+    implementation("com.zaxxer:HikariCP:6.2.1")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.10")
 }
