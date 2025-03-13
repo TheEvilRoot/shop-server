@@ -29,6 +29,8 @@ class ProductsRepositoryImpl(di: DI) : ProductsRepository, DIAware by di {
 
     private fun productToDto(product: Product): ProductDTO {
         return ProductDTO(
+            id = product.id.value,
+            name = product.name,
             type = product.category.name,
             images = product.images.map { productImageToLink(it) },
             price = PriceDTO(product.price, product.currency),
