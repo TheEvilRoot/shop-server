@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "lol.malinovskaya"
-version = "1.0.2"
+version = "1.0.3"
 
 gradleEnv {
     enableSystemEnvironment()
@@ -71,6 +71,8 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.4.14")
     implementation("org.kodein.di:kodein-di:7.25.0")
     implementation("com.zaxxer:HikariCP:6.2.1")
+    implementation("redis.clients:jedis:5.2.0")
+    implementation("io.github.flaxoos:ktor-server-task-scheduling-redis:2.1.1")
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.1.10")
 }

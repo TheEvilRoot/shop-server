@@ -5,7 +5,7 @@ import lol.malinovskaya.model.api.ProductDTO
 
 interface ProductsRepository {
 
-    suspend fun getProductCatalog(): List<ProductDTO>
+    suspend fun getProductCatalog(ignoreCache: Boolean = false): List<ProductDTO>
 
     suspend fun getImageData(imageId: Int): ImageDTO
 

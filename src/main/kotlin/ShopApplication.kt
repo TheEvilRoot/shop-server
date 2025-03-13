@@ -2,6 +2,8 @@ package lol.malinovskaya
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import dev.inmo.krontab.KronScheduler
+import dev.inmo.krontab.everyMinute
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -22,6 +24,10 @@ import org.jetbrains.exposed.sql.DatabaseConfig
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.instance
+import io.github.flaxoos.ktor.server.plugins.taskscheduling.*
+import io.github.flaxoos.ktor.server.plugins.taskscheduling.managers.lock.redis.redis
+import org.slf4j.LoggerFactory
+import kotlin.time.measureTime
 
 class ShopApplication(di: DI) : DIAware by di {
 
@@ -68,6 +74,25 @@ class ShopApplication(di: DI) : DIAware by di {
                 call.respond(HttpStatusCode.InternalServerError, e.response())
             }
         }
+        install(TaskScheduling) {
+            redis {
+                host = System.getenv("SHOP_REDIS_HOST")
+                port = System.getenv("SHOP_REDIS_PORT").toInt()
+            }
+            task {
+                val logger = LoggerFactory.getLogger("RefreshCatalogCache")
+                name = "RefreshCatalogCache"
+                concurrency = 1
+                task = {
+                    logger.warn("Refreshing catalog cache...")
+                    val elapsed = measureTime { productsRepository.getProductCatalog(ignoreCache = true) }
+                    logger.warn("Catalog cache refresh took $elapsed")
+                }
+                kronSchedule = {
+                    seconds { 0 every 30 }
+                }
+            }
+        }
         routing {
             route("api") {
                 get("catalog") {
@@ -77,7 +102,11 @@ class ShopApplication(di: DI) : DIAware by di {
                 get("images/{image_id}") {
                     val imageId = call.parameters.getOrFail("image_id").toInt()
                     val image = productsRepository.getImageData(imageId)
-                    call.respondBytes(contentType = ContentType.parse(image.mediaType), HttpStatusCode.OK) { image.bytes }
+                    call.response.cacheControl(CacheControl.MaxAge(maxAgeSeconds = 3600))
+                    call.respondBytes(
+                        contentType = ContentType.parse(image.mediaType),
+                        HttpStatusCode.OK
+                    ) { image.bytes }
                 }
             }
         }
