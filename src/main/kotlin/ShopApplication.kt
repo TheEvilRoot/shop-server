@@ -99,6 +99,12 @@ class ShopApplication(di: DI) : DIAware by di {
                     val products = productsRepository.getProductCatalog()
                     call.respond(products)
                 }
+                get("catalog/product/{productId}") {
+                    val productId = call.parameters.getOrFail("productId").toInt()
+                    val product = productsRepository.getProduct(productId)
+                        ?: return@get call.respond(HttpStatusCode.NotFound)
+                    call.respond(product)
+                }
                 get("images/{image_id}") {
                     val imageId = call.parameters.getOrFail("image_id").toInt()
                     val image = productsRepository.getImageData(imageId)

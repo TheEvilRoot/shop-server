@@ -45,6 +45,12 @@ class ProductsRepositoryImpl(di: DI) : ProductsRepository, DIAware by di {
         )
     }
 
+    override suspend fun getProduct(productId: Int): ProductDTO? {
+        return newSuspendedTransaction {
+            Product.findById(productId)?.let { productToDto(it) }
+        }
+    }
+
     override suspend fun getProductCatalog(ignoreCache: Boolean): List<ProductDTO> {
         if (!ignoreCache) {
             val cached = catalogCache.get("default")
